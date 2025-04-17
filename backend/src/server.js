@@ -1,6 +1,10 @@
 import cors from 'cors';
 import express from 'express';
 import pino from 'pino-http';
+import errorHandler from './middlewares/errorHandler.js';
+import notFoundHandler from './middlewares/notFoundHandler.js';
+import messagesRouter from './routers/messages.js';
+import ctrlWrapper from './utils/ctrlWrapper.js';
 import env from './utils/env.js';
 
 const startServer = () => {
@@ -16,17 +20,11 @@ const startServer = () => {
   app.use(cors());
   app.use(express.json());
 
-  app.use((req, res) => {
-    res.status(404).json({
-      message: `${req.url} not found`,
-    });
-  });
+  app.use('/messages', ctrlWrapper(messagesRouter));
 
-  app.use((error, req, res, next) => {
-    res.status(500).json({
-      message: error.message,
-    });
-  });
+  app.use(notFoundHandler);
+
+  app.use(errorHandler);
 
   const PORT = Number(env('PORT', 3000));
 
